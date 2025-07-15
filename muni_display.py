@@ -36,7 +36,7 @@ class MuniDisplay:
         self.stops = [
             {"code": "17874", "name": "Union Square Southbound", "routes": ["THIRD"]},
             {"code": "16524", "name": "Stockton St and Sutter St", "routes": ["STOCKTON", "UNION-STOCKTON"]},
-            # Add more stops as needed
+            {"code": "70012", "name": "Caltrain 4th & King", "routes": ["EXPRESS", "LIMITED", "LOCAL"], "agency": "CT"},  # Caltrain stop
         ]
         self.destination_blacklist = ['4th St & Mission St']
         
@@ -61,7 +61,7 @@ class MuniDisplay:
         # Title with SF Muni colors (red and white)
         title_label = tk.Label(
             header_frame,
-            text="🚌 SF MUNI LIVE",
+            text="🚌 SF MUNI & CALTRAIN LIVE",
             font=('Helvetica', 40, 'bold'),
             fg='#E31837',  # SF Muni red
             bg='#1a1a1a',
@@ -139,14 +139,15 @@ class MuniDisplay:
         header_content.pack(fill=tk.X, padx=15, pady=12)
         
         # Stop icon with proper padding
-        stop_icon = tk.Label(
+        stop_icon = "🚆" if stop.get("agency") == "CT" else "🚏"
+        stop_icon_label = tk.Label(
             header_content,
-            text="🚏",
+            text=stop_icon,
             font=('Helvetica', 24),
             bg='#363636',
             padx=5, pady=5  # Added padding to prevent emoji clipping
         )
-        stop_icon.pack(side=tk.LEFT, padx=(0, 10))
+        stop_icon_label.pack(side=tk.LEFT, padx=(0, 10))
         
         # Stop name and details
         name_frame = tk.Frame(header_content, bg='#363636')
@@ -183,12 +184,12 @@ class MuniDisplay:
         
         return stop_container
     
-    def fetch_stop_data(self, stop_code):
+    def fetch_stop_data(self, stop_code, agency="SF"):
         """Fetch real-time data for a specific stop"""
         try:
             params = {
                 'api_key': self.api_key,
-                'agency': 'SF',  # SF Muni agency code
+                'agency': agency,  # Default to SF Muni, can be overridden
                 'stopcode': stop_code,
                 'format': 'json'
             }
@@ -274,21 +275,25 @@ class MuniDisplay:
         for widget in frame.winfo_children():
             widget.destroy()
         
-        # Filter out arrivals less than 4 minutes
-        filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 4]
+        # Different filters for Caltrain vs Muni stops
+        if stop_code == "70012":  # Caltrain stop
+            filtered_arrivals = [arrival for arrival in arrivals if 20 <= arrival['minutes'] <= 40]
+        else:  # Muni stops
+            filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 4] 
         
         if not filtered_arrivals:
             no_data_container = tk.Frame(frame, bg='#2d2d2d')
             no_data_container.pack(fill=tk.X, padx=15, pady=15)
             
+            no_data_text = "⚠️ No upcoming arrivals (within 20-40 min)" if stop_code == "70012" else "⚠️ No upcoming arrivals (within 4+ min)"
             no_data_label = tk.Label(
                 no_data_container,
-                text="⚠️ No upcoming arrivals (within 4+ min)",
+                text=no_data_text,
                 font=('Helvetica', 14),
                 fg='#FFA726',
                 bg='#2d2d2d',
                 padx=5, pady=5
-            )
+            ) 
             no_data_label.pack(anchor=tk.W)
             return
         
@@ -377,10 +382,14 @@ class MuniDisplay:
             return '#E31837'  # SF Muni red for rapid
         elif 'express' in route_lower:
             return '#1976D2'  # Blue for express
+        elif 'limited' in route_lower:
+            return '#7B1FA2'  # Purple for limited/express
         elif route_lower.startswith('n'):
             return '#7B1FA2'  # Purple for night routes
-        else:
+        elif 'local' in route_lower:
             return '#388E3C'  # Green for regular routes
+        else:
+            return '#FF9800'  # Orange for other routes
     
     def get_time_styling(self, minutes):
         """Get icon and color for arrival time. Assume it takes 11-12 minutes to get to station."""
@@ -405,9 +414,12 @@ class MuniDisplay:
         """Update all stop data"""
         def fetch_and_update():
             for stop in self.stops:
-                arrivals = self.fetch_stop_data(stop["code"])
+                agency = stop.get("agency", "SF")  # Default to SF Muni if not specified
+                arrivals = self.fetch_stop_data(stop["code"], agency)
                 # Filter out routes not specified:
-                arrivals = [arrival for arrival in arrivals if arrival['route'] in stop["routes"] and arrival['destination'] not in self.destination_blacklist]
+                print(arrivals)
+                if agency == 'SF':
+                    arrivals = [arrival for arrival in arrivals if arrival['route'] in stop["routes"] and arrival['destination'] not in self.destination_blacklist]
                 self.root.after(0, self.update_stop_display, stop["code"], arrivals)
             
             # Update last updated timestamp

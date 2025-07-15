@@ -277,7 +277,7 @@ class MuniDisplay:
         
         # Different filters for Caltrain vs Muni stops
         if stop_code == "70012":  # Caltrain stop
-            filtered_arrivals = [arrival for arrival in arrivals if 20 <= arrival['minutes'] <= 40]
+            filtered_arrivals = [arrival for arrival in arrivals if 25 <= arrival['minutes'] <= 50]
         else:  # Muni stops
             filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 4] 
         
@@ -285,7 +285,7 @@ class MuniDisplay:
             no_data_container = tk.Frame(frame, bg='#2d2d2d')
             no_data_container.pack(fill=tk.X, padx=15, pady=15)
             
-            no_data_text = "⚠️ No upcoming arrivals (within 20-40 min)" if stop_code == "70012" else "⚠️ No upcoming arrivals (within 4+ min)"
+            no_data_text = "⚠️ No upcoming arrivals (within 25-50 min)" if stop_code == "70012" else "⚠️ No upcoming arrivals (within 4+ min)"
             no_data_label = tk.Label(
                 no_data_container,
                 text=no_data_text,

@@ -13,6 +13,20 @@ import time
 from datetime import datetime
 import logging
 import os
+import tkinter.font as tkfont
+
+# Add this after your imports
+def configure_fonts():
+    default_font = tkfont.nametofont("TkDefaultFont")
+    default_font.configure(family="DejaVu Sans", size=10)
+    
+    text_font = tkfont.nametofont("TkTextFont")
+    text_font.configure(family="DejaVu Sans", size=10)
+    
+    fixed_font = tkfont.nametofont("TkFixedFont")
+    fixed_font.configure(family="DejaVu Sans", size=10)
+
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -89,7 +103,7 @@ class MuniDisplay:
         self.current_time_label = tk.Label(
             status_inner,
             text="",
-            font=('Helvetica', 14, 'bold'),
+            font=('DejaVu Sans', 14, 'bold'),
             fg='#4CAF50',
             bg='#2d2d2d',
             padx=5, pady=5  # Added padding to prevent emoji clipping
@@ -139,11 +153,11 @@ class MuniDisplay:
         header_content.pack(fill=tk.X, padx=15, pady=12)
         
         # Stop icon with proper padding
-        stop_icon = "🚆" if stop.get("agency") == "CT" else "🚏"
+        stop_icon = "🚆" if stop.get("agency") == "CT" else "ⓑ"  # Train or bus symbol 
         stop_icon_label = tk.Label(
             header_content,
             text=stop_icon,
-            font=('Helvetica', 24),
+            font=('DejaVu Sans', 24),
             bg='#363636',
             padx=5, pady=5  # Added padding to prevent emoji clipping
         )
@@ -335,7 +349,7 @@ class MuniDisplay:
             time_icon_label = tk.Label(
                 time_frame,
                 text=time_icon,
-                font=('Segoe UI Emoji', 16),
+                font=('DejaVu Sans', 16),
                 fg=time_color,
                 bg='#2d2d2d',
                 padx=0
@@ -394,15 +408,15 @@ class MuniDisplay:
     def get_time_styling(self, minutes):
         """Get icon and color for arrival time. Assume it takes 11-12 minutes to get to station."""
         if minutes <= 9:
-            return "🔴", "#FF1744"  # Red for now
+            return "●", "#FF1744"  # Red circle
         elif minutes <= 11:
-            return "🟠", "#FF6D00"  # Orange for very soon
+            return "●", "#FF6D00"  # Orange circle
         elif minutes <= 12:
-            return "🟡", "#FFD600"  # Yellow for soon
+            return "●", "#FFD600"  # Yellow circle
         elif minutes <= 13:
-            return "🟢", "#4CAF50"  # Green for moderate
+            return "●", "#4CAF50"  # Green circle
         else:
-            return "🔵", "#2196F3"  # Blue for later
+            return "●", "#2196F3"  # Blue circle 
     
     def update_current_time(self):
         """Update the current time display"""
@@ -436,6 +450,8 @@ class MuniDisplay:
 def main():
     root = tk.Tk()
     app = MuniDisplay(root)
+    # Call this function before creating your main window
+    configure_fonts()
     root.mainloop()
 
 if __name__ == "__main__":

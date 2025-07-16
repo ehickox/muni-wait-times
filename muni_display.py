@@ -37,7 +37,7 @@ class MuniDisplay:
         self.root.configure(bg='black')
         
         # Make fullscreen (optional - remove if you want windowed)
-        #self.root.attributes('-fullscreen', True)
+        self.root.attributes('-fullscreen', True)
         self.root.bind('<Escape>', lambda e: self.root.quit())
         
         # API Configuration
@@ -53,7 +53,7 @@ class MuniDisplay:
         self.destination_blacklist = ['4th St & Mission St']
         
         # Refresh interval (seconds)
-        self.refresh_interval = 45
+        self.refresh_interval = 55
         
         # Create UI
         self.setup_ui()

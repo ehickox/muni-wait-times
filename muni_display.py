@@ -10,7 +10,7 @@ import requests
 import json
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 import tkinter.font as tkfont
@@ -25,8 +25,6 @@ def configure_fonts():
     
     fixed_font = tkfont.nametofont("TkFixedFont")
     fixed_font.configure(family="DejaVu Sans", size=10)
-
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -62,6 +60,13 @@ class MuniDisplay:
         
         # Start data fetching
         self.update_data()
+        
+        # Store next arrivals for commute calculation
+        self.next_arrivals = {
+            "17874": None,  # Union Square
+            "16524": None,  # Stockton and Sutter
+            "70012": None   # Caltrain
+        }
         
     def setup_ui(self):
         # Main container with gradient-like background
@@ -99,7 +104,7 @@ class MuniDisplay:
         status_inner = tk.Frame(status_frame, bg='#2d2d2d')
         status_inner.pack(fill=tk.X, padx=15, pady=10)
         
-        # Current time
+        # Current time (shorter format to make room)
         self.current_time_label = tk.Label(
             status_inner,
             text="",
@@ -109,6 +114,17 @@ class MuniDisplay:
             padx=5, pady=5  # Added padding to prevent emoji clipping
         )
         self.current_time_label.pack(side=tk.LEFT)
+        
+        # Office arrival time - same size as date
+        self.office_arrival_label = tk.Label(
+            status_inner,
+            text="🏢 Office: --:-- --",
+            font=('DejaVu Sans', 14, 'bold'),
+            fg='#2196F3',  # Default to blue
+            bg='#2d2d2d',
+            padx=5, pady=5
+        )
+        self.office_arrival_label.pack(side=tk.LEFT, expand=True, padx=(20, 0))
         
         # Last updated
         self.last_updated_label = tk.Label(
@@ -295,6 +311,13 @@ class MuniDisplay:
         else:  # Muni stops
             filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 4] 
         
+        # Store next arrival for commute calculation
+        if stop_code in self.next_arrivals:
+            self.next_arrivals[stop_code] = filtered_arrivals[0]['minutes'] if filtered_arrivals else None
+        
+        # Update office arrival estimate
+        self.update_office_arrival()
+        
         if not filtered_arrivals:
             no_data_container = tk.Frame(frame, bg='#2d2d2d')
             no_data_container.pack(fill=tk.X, padx=15, pady=15)
@@ -385,6 +408,57 @@ class MuniDisplay:
                 separator = tk.Frame(frame, height=1, bg='#404040')
                 separator.pack(fill=tk.X, padx=15, pady=4)
     
+    def update_office_arrival(self):
+        """Calculate and display estimated arrival time at office with color coding"""
+        try:
+            # Get next arrivals for relevant stops
+            union_arrival = self.next_arrivals["17874"]
+            stockton_arrival = self.next_arrivals["16524"]
+            caltrain_arrival = self.next_arrivals["70012"]
+            
+            # If we don't have all required data
+            if None in [union_arrival, stockton_arrival, caltrain_arrival]:
+                self.office_arrival_label.config(text="🏢 Office: Calculating...", fg='#2196F3')
+                return
+            
+            # Calculate commute times
+            muni_time = min(union_arrival + 15, stockton_arrival + 10)  # Muni travel time to Caltrain
+            caltrain_time = caltrain_arrival + 55  # Caltrain to Palo Alto
+            walk_time = 7  # Walk from Palo Alto station to office
+            
+            # Total commute time in minutes
+            total_commute = 13 + muni_time + caltrain_time + walk_time
+            
+            # Calculate arrival time
+            arrival_time = datetime.now() + timedelta(minutes=total_commute)
+            arrival_str = arrival_time.strftime("%I:%M %p")
+            
+            # Set color based on arrival time
+            arrival_hour = arrival_time.hour
+            arrival_minute = arrival_time.minute
+            
+            # Determine color and emoji
+            if arrival_hour < 8 or (arrival_hour == 8 and arrival_minute < 30):
+                # Before 8:30am - blue
+                color = '#2196F3'
+                emoji = "🏢"
+            elif arrival_hour == 8 and arrival_minute < 55:
+                # Between 8:30-8:55am - orange
+                color = '#FF9800'
+                emoji = "🏢"
+            else:
+                # After 8:55am - red with alarm
+                color = '#F44336'
+                emoji = "⏰"
+            
+            self.office_arrival_label.config(
+                text=f"{emoji} Office: {arrival_str}",
+                fg=color
+            )
+        except Exception as e:
+            logger.error(f"Error calculating office arrival: {e}")
+            self.office_arrival_label.config(text="🏢 Office: Error", fg='#F44336')
+    
     def get_route_color(self, route):
         """Get color for route badge based on route type"""
         route_lower = route.lower()
@@ -416,7 +490,7 @@ class MuniDisplay:
     
     def update_current_time(self):
         """Update the current time display"""
-        current_time = datetime.now().strftime("%A, %B %d, %Y • %I:%M:%S %p")
+        current_time = datetime.now().strftime("%a %b %d • %I:%M %p")  # Shorter format
         self.current_time_label.config(text=f"🕐 {current_time}")
         self.root.after(1000, self.update_current_time)
     

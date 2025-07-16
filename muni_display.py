@@ -423,7 +423,7 @@ class MuniDisplay:
             
             # Calculate commute times
             muni_time = min(union_arrival + 15, stockton_arrival + 10)  # Muni travel time to Caltrain
-            caltrain_time = caltrain_arrival + 55  # Caltrain to Palo Alto
+            caltrain_time = caltrain_arrival + 49  # Caltrain to Palo Alto
             walk_time = 7  # Walk from Palo Alto station to office
             
             # Total commute time in minutes

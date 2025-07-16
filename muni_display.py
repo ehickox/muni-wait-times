@@ -53,7 +53,7 @@ class MuniDisplay:
         self.destination_blacklist = ['4th St & Mission St']
         
         # Refresh interval (seconds)
-        self.refresh_interval = 55
+        self.refresh_interval = 62
         
         # Create UI
         self.setup_ui()
@@ -423,7 +423,7 @@ class MuniDisplay:
             
             # Calculate commute times
             muni_time = min(union_arrival + 15, stockton_arrival + 10)  # Muni travel time to Caltrain
-            caltrain_time = caltrain_arrival + 49  # Caltrain to Palo Alto
+            caltrain_time = caltrain_arrival + 49  # Caltrain to Palo Alto worst case local train
             walk_time = 7  # Walk from Palo Alto station to office
             
             # Total commute time in minutes
@@ -442,12 +442,12 @@ class MuniDisplay:
                 # Before 8:30am - blue
                 color = '#2196F3'
                 emoji = "🏢"
-            elif arrival_hour == 8 and arrival_minute < 55:
-                # Between 8:30-8:55am - orange
+            elif arrival_hour == 8 and arrival_minute < 56:
+                # Between 8:30-8:56am - orange
                 color = '#FF9800'
                 emoji = "🏢"
             else:
-                # After 8:55am - red with alarm
+                # After 8:56am - red with alarm
                 color = '#F44336'
                 emoji = "⏰"
             

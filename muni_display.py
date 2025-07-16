@@ -48,14 +48,14 @@ class MuniDisplay:
         
         # Your stop configurations - replace with your actual stops
         self.stops = [
-            {"code": "17874", "name": "Union Square Southbound", "routes": ["THIRD"]},
-            {"code": "16524", "name": "Stockton St and Sutter St", "routes": ["STOCKTON", "UNION-STOCKTON"]},
+            {"code": "17874", "name": "Union Square", "routes": ["THIRD"]},
+            {"code": "16524", "name": "Stockton and Sutter", "routes": ["STOCKTON", "UNION-STOCKTON"]},
             {"code": "70012", "name": "Caltrain 4th & King", "routes": ["EXPRESS", "LIMITED", "LOCAL"], "agency": "CT"},  # Caltrain stop
         ]
         self.destination_blacklist = ['4th St & Mission St']
         
         # Refresh interval (seconds)
-        self.refresh_interval = 30
+        self.refresh_interval = 45
         
         # Create UI
         self.setup_ui()
@@ -66,7 +66,7 @@ class MuniDisplay:
     def setup_ui(self):
         # Main container with gradient-like background
         main_frame = tk.Frame(self.root, bg='#1a1a1a')
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=15) 
         
         # Header section with SF Muni branding
         header_frame = tk.Frame(main_frame, bg='#1a1a1a')
@@ -76,7 +76,7 @@ class MuniDisplay:
         title_label = tk.Label(
             header_frame,
             text="🚌 SF MUNI & CALTRAIN LIVE",
-            font=('Helvetica', 40, 'bold'),
+            font=('Helvetica', 35, 'bold'),
             fg='#E31837',  # SF Muni red
             bg='#1a1a1a',
             pady=10  # Added padding to prevent emoji clipping
@@ -86,7 +86,7 @@ class MuniDisplay:
         subtitle_label = tk.Label(
             header_frame,
             text="Real-time Arrivals to Caltrain Station",
-            font=('Helvetica', 16),
+            font=('Helvetica', 14),
             fg='#cccccc',
             bg='#1a1a1a'
         )
@@ -129,8 +129,8 @@ class MuniDisplay:
         self.stop_frames = {}
         for i, stop in enumerate(self.stops):
             stop_frame = self.create_stop_frame(stops_container, stop)
-            stop_frame.grid(row=0, column=i, padx=10, pady=5, sticky="nsew")
-            stops_container.grid_columnconfigure(i, weight=1)
+            stop_frame.grid(row=0, column=i, padx=5, pady=5, sticky="nsew")
+            stops_container.grid_columnconfigure(i, weight=1, minsize=180)
         
         # Update current time
         self.update_current_time()
@@ -150,10 +150,10 @@ class MuniDisplay:
         
         # Stop icon and name
         header_content = tk.Frame(header_frame, bg='#363636')
-        header_content.pack(fill=tk.X, padx=15, pady=12)
+        header_content.pack(fill=tk.X, padx=8, pady=6)  # Reduced from 15,12 
         
         # Stop icon with proper padding
-        stop_icon = "🚆" if stop.get("agency") == "CT" else "ⓑ"  # Train or bus symbol 
+        stop_icon = "🚆" if stop.get("agency") == "CT" else "🚏"
         stop_icon_label = tk.Label(
             header_content,
             text=stop_icon,
@@ -170,7 +170,7 @@ class MuniDisplay:
         name_label = tk.Label(
             name_frame,
             text=stop["name"],
-            font=('Helvetica', 18, 'bold'),
+            font=('Helvetica', 14, 'bold'),
             fg='#ffffff',
             bg='#363636',
             anchor='w',
@@ -181,8 +181,8 @@ class MuniDisplay:
         # Stop ID
         id_label = tk.Label(
             name_frame,
-            text=f"Stop ID: {stop['code']}",
-            font=('Helvetica', 11),
+            text=f"ID: {stop['code']}",
+            font=('Helvetica', 9),
             fg='#888888',
             bg='#363636',
             anchor='w',
@@ -314,7 +314,7 @@ class MuniDisplay:
         # Display filtered arrivals
         for i, arrival in enumerate(filtered_arrivals[:6]):  # Show max 6 arrivals per stop
             arrival_container = tk.Frame(frame, bg='#2d2d2d')
-            arrival_container.pack(fill=tk.X, padx=15, pady=8)
+            arrival_container.pack(fill=tk.X, padx=8, pady=4)
             
             # Route badge
             route_frame = tk.Frame(arrival_container, bg='#2d2d2d')
@@ -324,8 +324,8 @@ class MuniDisplay:
             route_bg_color = self.get_route_color(arrival['route'])
             route_badge = tk.Label(
                 route_frame,
-                text=f" {arrival['route']} ",
-                font=('Helvetica', 12, 'bold'),
+                text=f"{arrival['route']}",
+                font=('Helvetica', 10, 'bold'),
                 fg='white',
                 bg=route_bg_color,
                 relief=tk.RAISED,
@@ -356,15 +356,11 @@ class MuniDisplay:
             )
             time_icon_label.pack(side=tk.LEFT)
             
-            # Minutes text
-            time_text = f" {arrival['minutes']} min"
-            if arrival['minutes'] == 1:
-                time_text = " 1 min"
                 
             time_label = tk.Label(
                 time_frame,
-                text=time_text,
-                font=('Helvetica', 16, 'bold'),
+                text=f"{arrival['minutes']}m",
+                font=('Helvetica', 12, 'bold'),
                 fg=time_color,
                 bg='#2d2d2d',
                 padx=0
@@ -376,7 +372,7 @@ class MuniDisplay:
                 dest_label = tk.Label(
                     info_frame,
                     text=f"→ {arrival['destination']}",
-                    font=('Helvetica', 11),
+                    font=('Helvetica', 9),
                     fg='#cccccc',
                     bg='#2d2d2d',
                     anchor='w',

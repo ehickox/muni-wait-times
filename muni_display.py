@@ -309,7 +309,7 @@ class MuniDisplay:
         if stop_code == "70012":  # Caltrain stop
             filtered_arrivals = [arrival for arrival in arrivals if 25 <= arrival['minutes'] <= 60]
         else:  # Muni stops
-            filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 4] 
+            filtered_arrivals = [arrival for arrival in arrivals if arrival['minutes'] >= 6] 
         
         # Store next arrival for commute calculation
         if stop_code in self.next_arrivals:
@@ -442,12 +442,12 @@ class MuniDisplay:
                 # Before 8:30am - blue
                 color = '#2196F3'
                 emoji = "🏢"
-            elif arrival_hour == 8 and arrival_minute < 56:
-                # Between 8:30-8:56am - orange
+            elif arrival_hour == 8 and arrival_minute < 59:
+                # Between 8:30-8:59am - orange
                 color = '#FF9800'
                 emoji = "🏢"
             else:
-                # After 8:56am - red with alarm
+                # After 8:59am - red with alarm
                 color = '#F44336'
                 emoji = "⏰"
             
@@ -483,7 +483,7 @@ class MuniDisplay:
             return "●", "#FF6D00"  # Orange circle
         elif minutes <= 12:
             return "●", "#FFD600"  # Yellow circle
-        elif minutes <= 13:
+        elif minutes <= 14:
             return "●", "#4CAF50"  # Green circle
         else:
             return "●", "#2196F3"  # Blue circle 
